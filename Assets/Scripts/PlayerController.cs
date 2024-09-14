@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     private float verticalInput;
     private bool turnLeftInput;
     private bool turnRightInput;
- 
+
     [SerializeField] float speed = 1000f;
     [SerializeField] float speedPowerUp = 1000f;
     [SerializeField] float speedPowerUpTime = 5f;
@@ -28,18 +28,31 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float bulletPowerUpTime = 5f;
     [SerializeField] bool isBulletPowerUp = false;
 
+    private GameController gameController;
+
+    private bool isDead = false;
     // Start is called before the first frame update
-    void Start()
+
+    public ParticleSystem deadParticle;
+
+    public void StartGame()
     {
         playerRb = GetComponent<Rigidbody>();
         StartCoroutine(Shot());
+    }
+    void Start()
+    {
+        gameController = GameObject.Find("GameManager").GetComponent<GameController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        ForceMove();
-        Rotation();
+        if (!gameController.IsGameOver())
+        {
+            ForceMove();
+            Rotation();
+        }
     }
 
     void ForceMove()
@@ -49,7 +62,7 @@ public class PlayerController : MonoBehaviour
 
         //playerRb.AddRelativeForce(Vector3.right * Time.deltaTime * speed * horizontalInput);
         playerRb.AddRelativeForce(Vector3.forward * Time.deltaTime * (speed + (isSpeedPowerUp ? speedPowerUp : 0)) * verticalInput);
-        
+
 
         Vector3 position = transform.position;
         Vector3 velocity = playerRb.velocity;
@@ -65,11 +78,12 @@ public class PlayerController : MonoBehaviour
 
     float ClampPosition(float value, float min, float max, ref float velocity)
     {
-        if(value < min)
+        if (value < min)
         {
             value = min;
             velocity = 0;
-        }else if(value > max)
+        }
+        else if (value > max)
         {
             value = max;
             velocity = 0;
@@ -82,10 +96,11 @@ public class PlayerController : MonoBehaviour
         turnLeftInput = Input.GetKey(KeyCode.LeftArrow);
         turnRightInput = Input.GetKey(KeyCode.RightArrow);
 
-        if(turnLeftInput && !turnRightInput)
+        if (turnLeftInput && !turnRightInput)
         {
             transform.Rotate(Vector3.up * -(rotateSpeed + (isSpeedPowerUp ? rotateSpeedPowerUp : 0)) * Time.deltaTime);
-        }else if(!turnLeftInput && turnRightInput)
+        }
+        else if (!turnLeftInput && turnRightInput)
         {
             transform.Rotate(Vector3.up * (rotateSpeed + (isSpeedPowerUp ? rotateSpeedPowerUp : 0)) * Time.deltaTime);
         }
@@ -93,7 +108,7 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator Shot()
     {
-        while(true)
+        while (!isDead)
         {
             yield return new WaitForSeconds(shotCD);
             Vector3 playerPosition = transform.position;
@@ -102,7 +117,8 @@ public class PlayerController : MonoBehaviour
             if (!isBulletPowerUp)
             {
                 Instantiate(bulletPrefab, spawnPosition, transform.rotation * bulletPrefab.transform.rotation);
-            }else
+            }
+            else
             {
                 Vector3 spawnPosition_1 = spawnPosition - transform.right * bulletOffset * 0.5f;
                 Instantiate(bulletPrefab, spawnPosition_1, transform.rotation * bulletPrefab.transform.rotation);
@@ -117,7 +133,7 @@ public class PlayerController : MonoBehaviour
 
     public void EatPowerUp(string powerUpTag)
     {
-        if(powerUpTag == "BulletPowerUp")
+        if (powerUpTag == "BulletPowerUp")
         {
             bulletPowerUpTime = 5;
             if (!isBulletPowerUp)
@@ -142,11 +158,11 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator BulletPowerUpIE()
     {
-        while(isBulletPowerUp)
+        while (isBulletPowerUp)
         {
             yield return new WaitForSeconds(1);
             bulletPowerUpTime--;
-            if(bulletPowerUpTime <= 0)
+            if (bulletPowerUpTime <= 0)
             {
                 isBulletPowerUp = false;
             }
@@ -174,5 +190,18 @@ public class PlayerController : MonoBehaviour
     public bool checkIsSpeedPowerUp()
     {
         return isSpeedPowerUp;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            Instantiate(deadParticle, transform.position, deadParticle.transform.rotation);
+            isDead = true;
+            isBulletPowerUp = false;
+            isSpeedPowerUp = false;
+            gameController.GameOver();
+            Destroy(gameObject);
+        }
     }
 }

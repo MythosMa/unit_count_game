@@ -11,8 +11,11 @@ public class PowerUpTip : MonoBehaviour
     private GameObject player;
     private PlayerController playerController;
     // Start is called before the first frame update
+
+    private GameController gameController;
     void Start()
     {
+        gameController = GameObject.Find("GameManager").GetComponent<GameController>();
         player = GameObject.Find("Player");
         playerController = player.GetComponent<PlayerController>();
     }
@@ -20,15 +23,20 @@ public class PowerUpTip : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate(Vector3.up * Time.deltaTime * rotateSpeed);
-        transform.position = player.transform.position;
+        if (!gameController.IsGameOver())
+        {
+            transform.Rotate(Vector3.up * Time.deltaTime * rotateSpeed);
+            transform.position = player.transform.position;
 
-        checkBulletPowerUpActive();
-        checkSpeedPowerUpActive();
+            checkBulletPowerUpActive();
+            checkSpeedPowerUpActive();
+        }
+
     }
 
     void checkBulletPowerUpActive()
     {
+
         if (playerController.checkIsBulletPowerUp() && !bulletPowerUp.activeSelf)
         {
             bulletPowerUp.SetActive(true);
@@ -37,6 +45,7 @@ public class PowerUpTip : MonoBehaviour
         {
             bulletPowerUp.SetActive(false);
         }
+
     }
 
     void checkSpeedPowerUpActive()

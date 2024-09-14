@@ -358,6 +358,7 @@
 -analyzer:"/Applications/Unity/Hub/Editor/2022.3.40f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
 "Assets/Counter/Counter.cs"
 "Assets/Scripts/Bullet.cs"
+"Assets/Scripts/DestroyObjectX.cs"
 "Assets/Scripts/Enemy.cs"
 "Assets/Scripts/GameController.cs"
 "Assets/Scripts/PlayerController.cs"
